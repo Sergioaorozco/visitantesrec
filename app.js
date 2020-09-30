@@ -56,7 +56,8 @@ app.get("/", async (req, res) => {
       return console.error(err);
     }
 
-    let template = "<table><tr><th>Id</th><th>Name</th><th>Visits</th></tr>";
+    let template =
+      "<table><thead><th>Id</th><th>Name</th><th>Visits</th></thead>";
 
     visitors.forEach((visitor) => {
       template += `<tr>
