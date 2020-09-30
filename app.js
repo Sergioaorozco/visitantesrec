@@ -24,28 +24,51 @@ const CurrentVisitor = mongoose.Schema({
 
 const CurrentModel = mongoose.model("Visitor", CurrentVisitor);
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
   const { name } = req.query;
-  CurrentModel.findOne(
-    {
-      name,
-    },
-    function (err, visitor) {
-      if (err) {
-        console.error(err);
+  if (name) {
+    await CurrentModel.findOne(
+      {
+        name,
+      },
+      async function (err, visitor) {
+        if (err) {
+          console.error(err);
+        }
+        if (visitor) {
+          visitor.count = visitor.count + 1;
+          await visitor.save();
+        } else {
+          await CurrentModel.create({
+            name,
+          });
+        }
       }
-      if (visitor) {
-        visitor.count = visitor.count + 1;
-        visitor.save();
-      } else {
-        CurrentModel.create({
-          name: name ? name : "Anónimo",
-        });
-      }
-    }
-  );
+    );
+  } else {
+    await CurrentModel.create({
+      name: "Anónimo",
+    });
+  }
 
-  res.send("<h1>Revisar Mongo a ver</h1>");
+  CurrentModel.find({}, function (err, visitors) {
+    if (err) {
+      return console.error(err);
+    }
+
+    let template = "<table><tr><th>Id</th><th>Name</th><th>Visits</th></tr>";
+
+    visitors.forEach((visitor) => {
+      template += `<tr>
+        <td>${visitor.id}</td>
+        <td>${visitor.name}</td>
+        <td>${visitor.count}</td>
+        </tr>`;
+    });
+    template += "</table>";
+
+    res.send(template);
+  });
 });
 
 app.listen(3000, () => console.log("listening on port 3000!"));
